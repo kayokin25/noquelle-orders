@@ -41,6 +41,25 @@ async function readSold(store) {
 }
 
 exports.handler = async (event) => {
+  // Временная диагностика: показывает ТОЛЬКО имена переменных окружения,
+  // никаких значений. Убрать, когда хранилище заработает.
+  if (event.queryStringParameters && event.queryStringParameters.diag === 'stock') {
+    let version = '?';
+    try { version = require('@netlify/blobs/package.json').version; } catch (e) {}
+    let storeErr = null;
+    try { getStore(STORE_NAME); } catch (e) { storeErr = String(e.message || e); }
+    return json(200, {
+      diag: true,
+      node: process.version,
+      blobsVersion: version,
+      hasBlobsContext: !!process.env.NETLIFY_BLOBS_CONTEXT,
+      envNames: Object.keys(process.env)
+        .filter((k) => /NETLIFY|SITE|DEPLOY|BLOB|LAMBDA_FUNCTION|^URL$|^CONTEXT$/i.test(k))
+        .sort(),
+      getStoreError: storeErr,
+    });
+  }
+
   let store;
   try {
     store = getStore(STORE_NAME);
