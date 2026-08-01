@@ -1,0 +1,11 @@
+# В репозитории держим переводы строк как LF, чтобы не было лишних диффов
+# при редактировании на Windows.
+* text=auto eol=lf
+
+# Бинарники git не должен трогать.
+*.webp binary
+*.woff2 binary
+*.woff binary
+*.png binary
+*.jpg binary
+*.jpeg binary

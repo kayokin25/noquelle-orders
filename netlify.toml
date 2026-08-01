@@ -1,0 +1,28 @@
+# Статический сайт: собирать нечего, просто раздаём папку как есть.
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+# Короткий адрес для админ-панели.
+[[redirects]]
+  from = "/api/publish"
+  to = "/.netlify/functions/publish"
+  status = 200
+
+# Каталог должен подхватываться сразу после публикации, без кеша браузера.
+[[headers]]
+  for = "/catalog.json"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Картинки и шрифты переживают деплои — их можно кешировать надолго.
+# Имена файлов стабильные, поэтому ставим неделю + обязательную ревалидацию.
+[[headers]]
+  for = "/img/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, stale-while-revalidate=86400"
+
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

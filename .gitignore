@@ -1,0 +1,20 @@
+# зависимости и служебное
+node_modules/
+.netlify/
+__pycache__/
+*.pyc
+
+# мусор ОС и редакторов
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.vscode/
+.idea/
+
+# исходники графики и бэкапы — в репозитории им не место
+*.psd
+*.ai
+*.pdf
+*.bak
+index (*).html
