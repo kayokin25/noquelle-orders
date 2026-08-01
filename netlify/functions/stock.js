@@ -25,9 +25,15 @@ const MAX_QTY = 99;      // разумный предел на одну пози
 const MAX_ITEMS = 60;    // и на количество позиций в заказе
 const MAX_SOLD = 1000000;
 
-const json = (statusCode, body) => ({
+const json = (statusCode, body, cache) => ({
   statusCode,
-  headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
+  headers: {
+    'Content-Type': 'application/json; charset=utf-8',
+    // По умолчанию не кешируем. Для чтения остатков ставим короткий кеш:
+    // так CDN отдаёт ответ сам и не тратит вызовы функции на каждый заход.
+    'Cache-Control': cache ? 'public, max-age=30' : 'no-store',
+    ...(cache ? { 'Netlify-CDN-Cache-Control': 'public, max-age=60, stale-while-revalidate=120' } : {}),
+  },
   body: JSON.stringify(body),
 });
 
@@ -46,17 +52,35 @@ exports.handler = async (event) => {
   if (event.queryStringParameters && event.queryStringParameters.diag === 'stock') {
     let version = '?';
     try { version = require('@netlify/blobs/package.json').version; } catch (e) {}
-    let storeErr = null;
-    try { getStore(STORE_NAME); } catch (e) { storeErr = String(e.message || e); }
+    const attempts = {};
+    const tryCfg = async (label, cfg) => {
+      try {
+        const s = cfg ? getStore(cfg) : getStore(STORE_NAME);
+        await s.set('__diag', 'ok');
+        const back = await s.get('__diag');
+        attempts[label] = back === 'ok' ? 'РАБОТАЕТ' : 'записалось, но прочиталось: ' + back;
+      } catch (e) {
+        attempts[label] = 'ошибка: ' + String(e.message || e).slice(0, 120);
+      }
+    };
+    await tryCfg('auto');
+    if (process.env.SITE_ID && process.env.NETLIFY_FUNCTIONS_TOKEN) {
+      await tryCfg('functions-token', {
+        name: STORE_NAME, siteID: process.env.SITE_ID, token: process.env.NETLIFY_FUNCTIONS_TOKEN,
+      });
+    }
+    if (process.env.SITE_ID && process.env.NETLIFY_API_TOKEN) {
+      await tryCfg('api-token', {
+        name: STORE_NAME, siteID: process.env.SITE_ID, token: process.env.NETLIFY_API_TOKEN,
+      });
+    }
     return json(200, {
       diag: true,
       node: process.version,
       blobsVersion: version,
       hasBlobsContext: !!process.env.NETLIFY_BLOBS_CONTEXT,
-      envNames: Object.keys(process.env)
-        .filter((k) => /NETLIFY|SITE|DEPLOY|BLOB|LAMBDA_FUNCTION|^URL$|^CONTEXT$/i.test(k))
-        .sort(),
-      getStoreError: storeErr,
+      hasApiToken: !!process.env.NETLIFY_API_TOKEN,
+      attempts,
     });
   }
 
@@ -68,7 +92,7 @@ exports.handler = async (event) => {
   }
 
   if (event.httpMethod === 'GET') {
-    return json(200, { ok: true, sold: await readSold(store) });
+    return json(200, { ok: true, sold: await readSold(store) }, true /* можно кешировать */);
   }
   if (event.httpMethod !== 'POST') {
     return json(405, { error: 'Нужен GET или POST' });

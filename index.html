@@ -1343,7 +1343,11 @@ function applySold(map){
   renderGrid();renderCart();
   if($('#editor')&&$('#editor').style.display!=='none')renderAdminList();
 }
+/* Если ни у одного товара не задан остаток — считать нечего, и функцию
+   вообще не вызываем: каждый вызов на Netlify платный. */
+function anyStockTracked(){return state.products.some(p=>stockLeft(p)!==null);}
 async function loadSold(){
+  if(!anyStockTracked())return;
   try{
     const res=await fetch('/api/stock');
     if(!res.ok)return;                       // функции нет или ошибка — молча живём на цифрах из каталога
