@@ -54,7 +54,11 @@ async function readSold(store) {
 export default async (req) => {
   let store;
   try {
-    store = getStore(STORE_NAME);
+    // consistency: 'strong' обязательно. По умолчанию Blobs читает из
+    // регионального кеша (eventual), и тогда счётчик теряет инкременты:
+    // read-modify-write может прочитать устаревшее значение. Проверено на
+    // живом сайте — с настройками по умолчанию запись «пропадала».
+    store = getStore({ name: STORE_NAME, consistency: 'strong' });
   } catch (e) {
     return json(500, { error: 'Хранилище остатков недоступно', detail: String(e.message || e) });
   }
