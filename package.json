@@ -1,0 +1,9 @@
+{
+  "name": "noquelle-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Лендинг Noquelle: статика + функции Netlify (публикация каталога и учёт остатков)",
+  "dependencies": {
+    "@netlify/blobs": "^10.7.11"
+  }
+}

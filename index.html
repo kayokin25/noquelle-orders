@@ -547,7 +547,7 @@ img{-webkit-user-drag:none;-khtml-user-drag:none;-moz-user-drag:none;-o-user-dra
         <div class="field" style="max-width:280px">
           <label>Осталось в наличии, шт</label>
           <input id="fLeft" type="number" min="0" step="1" placeholder="не ограничено">
-          <p class="note" style="margin-top:6px">Необязательно. Если вписать число — на карточке появится «Осталось N шт», и больше этого количества в корзину не положат. 0 = нет в наличии. Оставь пустым, если учёт не нужен.</p>
+          <p class="note" style="margin-top:6px">Необязательно. Впиши <b>сколько физически лежит на полке</b> — на карточке появится «Осталось N шт», и больше этого в корзину не положат. Дальше число уменьшается само с каждым заказом. <b>Вписала новое число — счётчик обнулился</b> (это и есть пополнение). 0 = распродано. Пусто — учёта нет.</p>
         </div>
         <div class="actbar">
           <button class="btn primary" id="saveProduct">Добавить товар</button>
@@ -631,8 +631,28 @@ function stockLeft(p){
   const n=Math.floor(Number(p.stock));
   return Number.isFinite(n)&&n>=0?n:null;
 }
+/* Проданное приходит с сервера (/api/stock), в каталоге не хранится:
+   {id:{sold, stockAt}}. stockAt — цифра из панели на момент последнего сброса. */
+let soldMap={};
+
+/* Сколько реально осталось: цифра из панели минус проданное.
+   Если цифру в панели поменяли, stockAt перестаёт совпадать — считаем это
+   пополнением склада и начинаем отсчёт заново от нового числа. */
+function remainingOf(p){
+  const base=stockLeft(p);
+  if(base===null)return null;
+  const rec=soldMap[p&&p.id];
+  if(!rec||Number(rec.stockAt)!==base)return base;
+  return Math.max(0,base-(Number(rec.sold)||0));
+}
+/* Сколько продано с последнего пополнения (для панели). */
+function soldOf(p){
+  const base=stockLeft(p),rec=soldMap[p&&p.id];
+  if(base===null||!rec||Number(rec.stockAt)!==base)return 0;
+  return Number(rec.sold)||0;
+}
 /* Товар можно купить, если он в наличии и остаток не исчерпан. */
-function canBuy(p){const n=stockLeft(p);return !!(p&&p.inStock)&&(n===null||n>0);}
+function canBuy(p){const n=remainingOf(p);return !!(p&&p.inStock)&&(n===null||n>0);}
 /* Сколько единиц этого товара уже в корзине (по всем вариантам опций). */
 function cartQtyOf(id){return Object.values(cart).reduce((s,l)=>s+(l.id===id?l.q:0),0);}
 function imgSrc(v){return (typeof v==='string'&&v.startsWith('ph:'))?placeholder(+v.slice(3)):v;}
@@ -676,7 +696,7 @@ function renderChips(){
 function renderGrid(){
   const list=state.products.filter(p=>activeCat==='Все'||p.category===activeCat);
   if(!list.length){$('#grid').innerHTML=`<p style="color:var(--ink-soft);font-weight:700">Тут пока пусто ✦</p>`;return;}
-  $('#grid').innerHTML=list.map(p=>{const left=stockLeft(p),buy=canBuy(p);return `
+  $('#grid').innerHTML=list.map(p=>{const left=remainingOf(p),buy=canBuy(p);return `
     <article class="card ${buy?'':'out'}">
       <div class="thumb" data-zoom="${p.id}" role="button" tabindex="0" aria-label="Увеличить фото: ${escAttr(p.name)}">
         ${!buy?`<span class="badge">нет в наличии</span>`:''}
@@ -703,7 +723,7 @@ function renderStore(){applyShop();renderChips();renderGrid();renderCart();}
 function lineKey(id,opts){const k=opts&&Object.keys(opts).length?JSON.stringify(Object.keys(opts).sort().reduce((a,x)=>(a[x]=opts[x],a),{})):'';return id+'§'+k;}
 function addToCart(id,opts){
   opts=opts||{};
-  const left=stockLeft(state.products.find(x=>x.id===id));
+  const left=remainingOf(state.products.find(x=>x.id===id));
   if(left!==null&&cartQtyOf(id)>=left){openCart();return;}   // остаток уже весь в корзине
   const key=lineKey(id,opts);
   if(cart[key])cart[key].q++;else cart[key]={id,opts,q:1};
@@ -712,7 +732,7 @@ function addToCart(id,opts){
 function setQty(key,d){
   const l=cart[key];if(!l)return;
   if(d>0){
-    const left=stockLeft(state.products.find(x=>x.id===l.id));
+    const left=remainingOf(state.products.find(x=>x.id===l.id));
     if(left!==null&&cartQtyOf(l.id)>=left)return;            // не даём набрать больше остатка
   }
   l.q+=d;if(l.q<=0)delete cart[key];renderCart();
@@ -754,7 +774,7 @@ function renderCart(){
   }else{
     $('#checkoutBox').style.display='block';
     $('#cartItems').innerHTML=items.map(({key,p,opts,q})=>{const ot=optText(opts);
-      const left=stockLeft(p),atMax=left!==null&&cartQtyOf(p.id)>=left;return `
+      const left=remainingOf(p),atMax=left!==null&&cartQtyOf(p.id)>=left;return `
       <div class="item">
         ${cardImg(p,` data-zoom="${p.id}" style="cursor:zoom-in"`)}
         <div class="info">
@@ -807,10 +827,10 @@ function submitOrder(){
     fio:val('ofFio'),index:val('ofIndex'),recvPhone:val('ofRecvPhone'),address:val('ofAddr'),comment:val('ofComment'),
     currency:cur(),subtotal:cartSubtotal(),discount:totalDisc,total:cartTotal(),
     promos:applied.map(a=>({name:a.name,times:a.times,disc:a.disc})),
-    // id нужен, чтобы Apps Script позже мог сам списывать остатки по товару
     items:items.map(({p,opts,q})=>({id:p.id,name:p.name,size:p.size||'',options:optText(opts),qty:q,sum:lineUnit(p,opts)*q}))
   };
   lastOrder=payload;
+  reportSold(items);   // счётчик остатков; на отправку заказа не влияет
   const endpoint=(state.shop.orderEndpoint||'').trim();
   if(endpoint){
     $('#orderPayload').value=JSON.stringify(payload);
@@ -1158,7 +1178,10 @@ function renderAdminList(){
     <div class="prow">
       <img src="${escAttr(thumbSrc(imgSrc(imgList(p)[0])))}" alt="" loading="lazy" decoding="async">
       <span class="pn">${esc(p.name)}${p.size?` · ${esc(p.size)}`:''}</span>
-      <span class="tag ${canBuy(p)?'':'o'}">${canBuy(p)?esc(p.category)+(stockLeft(p)!==null?` · ${stockLeft(p)} шт`:''):'нет в наличии'}</span>
+      <span class="tag ${canBuy(p)?'':'o'}">${canBuy(p)
+        ?esc(p.category)+(stockLeft(p)!==null?` · осталось ${remainingOf(p)} из ${stockLeft(p)}`:'')
+        :(stockLeft(p)===0||remainingOf(p)===0?'распродано':'нет в наличии')}</span>${
+        soldOf(p)?`<span class="tag" style="background:rgba(255,111,165,.16);color:var(--pop-deep)">продано ${soldOf(p)}</span>`:''}
       <span class="pp">${p.price} ${cur()}</span>
       <div class="miniact">
         <button data-up="${p.id}" title="выше" style="background:var(--sky)">↑</button>
@@ -1313,7 +1336,46 @@ $('#resetAll').addEventListener('click',()=>{
 });
 function flash(btn,txt){const o=btn.textContent;btn.textContent=txt;setTimeout(()=>btn.textContent=o,1400);}
 
+/* --- остатки: чтение и запись проданного --- */
+function applySold(map){
+  if(!map||typeof map!=='object')return;
+  soldMap=map;
+  renderGrid();renderCart();
+  if($('#editor')&&$('#editor').style.display!=='none')renderAdminList();
+}
+async function loadSold(){
+  try{
+    const res=await fetch('/api/stock');
+    if(!res.ok)return;                       // функции нет или ошибка — молча живём на цифрах из каталога
+    const d=await res.json();
+    if(d&&d.ok)applySold(d.sold);
+  }catch(e){/* офлайн — не мешаем магазину работать */}
+}
+/* Сообщаем серверу, что заказали. Отдельно от отправки в Apps Script:
+   если этот запрос не дойдёт, заказ всё равно уедет продавцу как обычно. */
+function reportSold(items){
+  const agg={};
+  items.forEach(({p,q})=>{
+    const base=stockLeft(p);
+    if(base===null)return;                   // у товара нет учёта — нечего считать
+    if(!agg[p.id])agg[p.id]={id:p.id,qty:0,stockAt:base};
+    agg[p.id].qty+=q;
+  });
+  const payload=Object.values(agg);
+  if(!payload.length)return;
+  fetch('/api/stock',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({items:payload})
+  }).then(r=>r.ok?r.json():null)
+    .then(d=>{if(d&&d.ok)applySold(d.sold);})
+    .catch(()=>{});
+}
+
 renderStore();
+
+/* Подтягиваем проданное с сервера. Специально не ждём его перед первой
+   отрисовкой: каталог показывается сразу, а цифры остатка догоняют. */
+loadSold();
 })();
 </script>
 
