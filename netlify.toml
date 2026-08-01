@@ -3,7 +3,12 @@
   publish = "."
   functions = "netlify/functions"
 
-# Короткий адрес для админ-панели.
+# Короткие адреса для админ-панели.
+[[redirects]]
+  from = "/api/unlock"
+  to = "/.netlify/functions/unlock"
+  status = 200
+
 [[redirects]]
   from = "/api/publish"
   to = "/.netlify/functions/publish"

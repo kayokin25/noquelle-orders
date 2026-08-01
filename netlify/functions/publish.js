@@ -68,6 +68,10 @@ exports.handler = async (event) => {
     return json(400, { error: 'У какого-то товара нет id — публикация отменена' });
   }
 
+  // Пароль проверяется на сервере, в каталоге ему не место. Вырезаем на всякий
+  // случай — старый черновик в браузере мог его ещё тащить за собой.
+  if (catalog.shop && 'adminPass' in catalog.shop) delete catalog.shop.adminPass;
+
   const content = JSON.stringify(catalog, null, 2) + '\n';
   const bytes = Buffer.byteLength(content, 'utf8');
   if (bytes > MAX_BYTES) {

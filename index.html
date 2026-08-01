@@ -480,9 +480,9 @@ img{-webkit-user-drag:none;-khtml-user-drag:none;-moz-user-drag:none;-o-user-dra
       <div class="panel">
         <h2 style="font-size:22px">Панель редактирования</h2>
         <p class="sub" style="margin-bottom:16px">Введите пароль, чтобы менять товары</p>
-        <div class="field"><input type="password" id="passInput" placeholder="неверный пароль" autocomplete="off"></div>
+        <div class="field"><input type="password" id="passInput" placeholder="пароль" autocomplete="current-password"></div>
         <button class="btn primary" id="gateBtn" style="width:100%">Войти</button>
-        <p class="note">Это не «настоящая» защита — просто чтобы случайные посетители не зашли. Пароль хранится в файле сайта.</p>
+        <p class="note">Пароль проверяется на сервере и в файлах сайта не хранится. Он же используется для публикации — вводить второй раз не придётся. Меняется в настройках Netlify (переменная <b>ADMIN_PASSWORD</b>).</p>
       </div>
     </div>
 
@@ -505,7 +505,7 @@ img{-webkit-user-drag:none;-khtml-user-drag:none;-moz-user-drag:none;-o-user-dra
         <div class="field"><label>Подпись под названием</label><input id="setTag"></div>
         <div class="row2">
           <div class="field"><label>Символ валюты</label><input id="setCur"></div>
-          <div class="field"><label>Пароль панели</label><input id="setPass"></div>
+          <div class="field"><label>Пароль панели</label><input value="меняется в Netlify → ADMIN_PASSWORD" disabled title="Пароль хранится на сервере, а не в файлах сайта"></div>
         </div>
         <div class="field">
           <label>Ссылка для приёма заказов (Google Apps Script)</label>
@@ -1028,9 +1028,32 @@ function unlock(){$('#gate').style.display='none';$('#editor').style.display='bl
 $('#floatAdmin').addEventListener('click',()=>{location.hash='admin';openAdmin();});
 window.addEventListener('hashchange',()=>{if(location.hash==='#admin')openAdmin();});
 if(location.hash==='#admin')openAdmin();
-$('#gateBtn').addEventListener('click',()=>{
-  if($('#passInput').value===(state.shop.adminPass||'admin'))unlock();
-  else{$('#passInput').value='';$('#passInput').placeholder='неверный пароль';}
+/* Пароль проверяется на сервере (/api/unlock) — в исходнике сайта и в catalog.json
+   его нет. Это тот же пароль, что и для публикации: ввела при входе — публикация
+   уже не спросит. */
+$('#gateBtn').addEventListener('click',async()=>{
+  const btn=$('#gateBtn'),inp=$('#passInput'),pass=inp.value;
+  if(!pass){inp.placeholder='введи пароль';inp.focus();return;}
+  const old=btn.textContent;btn.disabled=true;btn.textContent='Проверяю…';
+  try{
+    const res=await fetch('/api/unlock',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({password:pass})
+    });
+    if(res.ok){
+      pubPassCache=pass;      // чтобы публикация не спрашивала повторно
+      inp.value='';inp.placeholder='пароль';
+      unlock();
+    }else{
+      let msg='неверный пароль';
+      if(res.status===500)msg='на сервере не задан ADMIN_PASSWORD';
+      inp.value='';inp.placeholder=msg;
+    }
+  }catch(err){
+    inp.value='';inp.placeholder='нет связи с сервером';
+  }finally{
+    btn.disabled=false;btn.textContent=old;
+  }
 });
 $('#passInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('#gateBtn').click();});
 $('#closeAdmin').addEventListener('click',closeAdmin);
@@ -1038,7 +1061,7 @@ $('#closeAdmin').addEventListener('click',closeAdmin);
 function loadSettingsForm(){
   $('#setName').value=state.shop.name;$('#setTg').value=state.shop.telegram;
   $('#setTag').value=state.shop.tagline;$('#setCur').value=state.shop.currency;
-  $('#setPass').value=state.shop.adminPass;$('#setEndpoint').value=state.shop.orderEndpoint||'';
+  $('#setEndpoint').value=state.shop.orderEndpoint||'';
   $('#setVk').value=state.shop.vk||'';
   $('#setCats').value=state.shop.categories.join(', ');
 }
@@ -1048,7 +1071,7 @@ $('#saveSettings').addEventListener('click',()=>{
   state.shop.vk=$('#setVk').value.trim().replace(/^@/,'');
   state.shop.tagline=$('#setTag').value.trim();
   state.shop.currency=$('#setCur').value.trim()||'₽';
-  state.shop.adminPass=$('#setPass').value||'admin';
+  delete state.shop.adminPass;   // пароль живёт на сервере, в каталоге его быть не должно
   state.shop.orderEndpoint=$('#setEndpoint').value.trim();
   state.shop.categories=$('#setCats').value.split(',').map(s=>s.trim()).filter(Boolean);
   saveDraft();fillCatSelect();renderStore();flash($('#saveSettings'),'Сохранено ✓');
