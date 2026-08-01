@@ -37,8 +37,3 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# временный эксперимент, уберу
-[[redirects]]
-  from = "/api/stock2"
-  to = "/.netlify/functions/stock2"
-  status = 200
