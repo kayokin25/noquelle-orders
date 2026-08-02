@@ -239,34 +239,6 @@
       "inStock": true
     },
     {
-      "id": "p_bd37",
-      "name": "Значок «Дио» 37 мм",
-      "price": 150,
-      "category": "Значки",
-      "desc": "!!! Количество ограничено !!!",
-      "size": "37 мм",
-      "images": [
-        "img/p_bd37-0.webp"
-      ],
-      "image": "img/p_bd37-0.webp",
-      "inStock": false,
-      "options": []
-    },
-    {
-      "id": "p_bd25",
-      "name": "Значок «Диего» 25 мм",
-      "price": 100,
-      "category": "Значки",
-      "desc": "!!! Количество ограничено !!!",
-      "size": "25 мм",
-      "images": [
-        "img/p_bd25-0.webp"
-      ],
-      "image": "img/p_bd25-0.webp",
-      "inStock": false,
-      "options": []
-    },
-    {
       "id": "p_pud1",
       "name": "Пудинг «DIO»",
       "price": 900,
@@ -295,20 +267,6 @@
       "inStock": true,
       "options": [],
       "stock": 2
-    },
-    {
-      "id": "p_kc",
-      "name": "Кейкап «Дио»",
-      "price": 300,
-      "category": "Брелоки",
-      "desc": "!!! Количество ограничено !!!",
-      "size": "",
-      "images": [
-        "img/p_kc-0.webp"
-      ],
-      "image": "img/p_kc-0.webp",
-      "inStock": false,
-      "options": []
     },
     {
       "id": "p_pc1",
@@ -381,20 +339,6 @@
       "options": []
     },
     {
-      "id": "p_pc6",
-      "name": "Открытка А6 №6",
-      "price": 150,
-      "category": "Печать",
-      "desc": "",
-      "size": "A6",
-      "images": [
-        "img/p_pc6-0.webp"
-      ],
-      "image": "img/p_pc6-0.webp",
-      "inStock": false,
-      "options": []
-    },
-    {
       "id": "p_pc7",
       "name": "Открытка А6 №7",
       "price": 150,
@@ -420,20 +364,6 @@
       ],
       "image": "img/p_pc8-0.webp",
       "inStock": true,
-      "options": []
-    },
-    {
-      "id": "p_pc9",
-      "name": "Открытка А6 №9",
-      "price": 150,
-      "category": "Печать",
-      "desc": "",
-      "size": "A6",
-      "images": [
-        "img/p_pc9-0.webp"
-      ],
-      "image": "img/p_pc9-0.webp",
-      "inStock": false,
       "options": []
     },
     {
@@ -630,6 +560,76 @@
       ],
       "image": "img/p_pr8-0.webp",
       "inStock": true,
+      "options": []
+    },
+    {
+      "id": "p_bd37",
+      "name": "Значок «Дио» 37 мм",
+      "price": 150,
+      "category": "Значки",
+      "desc": "!!! Количество ограничено !!!",
+      "size": "37 мм",
+      "images": [
+        "img/p_bd37-0.webp"
+      ],
+      "image": "img/p_bd37-0.webp",
+      "inStock": false,
+      "options": []
+    },
+    {
+      "id": "p_bd25",
+      "name": "Значок «Диего» 25 мм",
+      "price": 100,
+      "category": "Значки",
+      "desc": "!!! Количество ограничено !!!",
+      "size": "25 мм",
+      "images": [
+        "img/p_bd25-0.webp"
+      ],
+      "image": "img/p_bd25-0.webp",
+      "inStock": false,
+      "options": []
+    },
+    {
+      "id": "p_kc",
+      "name": "Кейкап «Дио»",
+      "price": 300,
+      "category": "Брелоки",
+      "desc": "!!! Количество ограничено !!!",
+      "size": "",
+      "images": [
+        "img/p_kc-0.webp"
+      ],
+      "image": "img/p_kc-0.webp",
+      "inStock": false,
+      "options": []
+    },
+    {
+      "id": "p_pc6",
+      "name": "Открытка А6 №6",
+      "price": 150,
+      "category": "Печать",
+      "desc": "",
+      "size": "A6",
+      "images": [
+        "img/p_pc6-0.webp"
+      ],
+      "image": "img/p_pc6-0.webp",
+      "inStock": false,
+      "options": []
+    },
+    {
+      "id": "p_pc9",
+      "name": "Открытка А6 №9",
+      "price": 150,
+      "category": "Печать",
+      "desc": "",
+      "size": "A6",
+      "images": [
+        "img/p_pc9-0.webp"
+      ],
+      "image": "img/p_pc9-0.webp",
+      "inStock": false,
       "options": []
     },
     {
