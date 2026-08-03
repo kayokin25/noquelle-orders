@@ -197,15 +197,13 @@
           "type": "select",
           "choices": [
             "Розовый",
-            "Сиреневый",
             "Чёрный",
-            "Жёлтый",
-            "Красный"
+            "Жёлтый"
           ],
           "required": true
         }
       ],
-      "stock": 6
+      "stock": 4
     },
     {
       "id": "pmrue2spm7k7",
@@ -251,7 +249,7 @@
       "image": "img/p_pud1-0.webp",
       "inStock": true,
       "options": [],
-      "stock": 5
+      "stock": 4
     },
     {
       "id": "p_pud2",
