@@ -21,7 +21,7 @@
  */
 import { getStore } from '@netlify/blobs';
 
-const STORE_NAME = 'noquelle-stock';
+const STORE_NAME = 'noquelle';   // общий store с каталогом
 const KEY = 'sold';
 const MAX_QTY = 99;        // разумный предел на одну позицию
 const MAX_ITEMS = 60;      // и на количество позиций в заказе

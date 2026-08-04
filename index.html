@@ -578,11 +578,15 @@ img{-webkit-user-drag:none;-khtml-user-drag:none;-moz-user-drag:none;-o-user-dra
 
       <div class="panel">
         <h3>Опубликовать изменения</h3>
-        <p class="note" style="margin-top:0">Жми «Опубликовать» — каталог уедет на сайт сам, файлы перезаливать не нужно. Через минуту-две правки увидят все.</p>
+        <p class="note" style="margin-top:0">Жми «Опубликовать» — правки появятся на сайте через несколько секунд. Сборка сайта не запускается, кредиты Netlify не тратятся.</p>
         <div class="field" style="max-width:280px">
           <label>Пароль публикации</label>
           <input id="pubPass" type="password" autocomplete="current-password" placeholder="••••••">
         </div>
+        <div class="toggles">
+          <label><input type="checkbox" id="pubSnapshot"> Ещё и сохранить снимок в GitHub</label>
+        </div>
+        <p class="note" style="margin-top:0">Галочка нужна редко — она дополнительно коммитит каталог в репозиторий, а это уже запускает сборку и расходует кредиты. Для обычных правок оставляй её снятой.</p>
         <div class="actbar">
           <button class="btn primary" id="pubSite">⬆ Опубликовать на сайте</button>
           <button class="btn sky" id="dlJson">Скачать catalog.json (бэкап)</button>
@@ -598,17 +602,33 @@ img{-webkit-user-drag:none;-khtml-user-drag:none;-moz-user-drag:none;-o-user-dra
 
 <script>
 (async () => {
-  /* Каталог лежит в catalog.json. Админ-панель публикует его через /api/publish. */
-  let embedded;
+  /* Живой каталог лежит в Netlify Blobs и отдаётся через /api/catalog — так
+     публикация из панели не требует сборки сайта. Статический catalog.json
+     в репозитории остаётся запасом: им пользуемся, если функция недоступна
+     или в хранилище ещё пусто (до самой первой публикации). */
+  let embedded, catalogSource = 'blobs';
   try {
-    const res = await fetch('catalog.json');
+    const res = await fetch('/api/catalog');
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    embedded = await res.json();
+    const data = await res.json();
+    if (data && data.catalog && Array.isArray(data.catalog.products) && data.catalog.products.length) {
+      embedded = data.catalog;
+    } else {
+      throw new Error('в хранилище пусто');
+    }
   } catch (err) {
-    console.error('catalog.json не загрузился', err);
-    const g = document.getElementById('grid');
-    if (g) g.innerHTML = '<p style="padding:40px;text-align:center;color:#7A75A6">Не удалось загрузить каталог. Обнови страницу.</p>';
-    return;
+    catalogSource = 'static';
+    console.info('Каталог берём из статического catalog.json:', err.message);
+    try {
+      const res = await fetch('catalog.json');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      embedded = await res.json();
+    } catch (err2) {
+      console.error('каталог не загрузился совсем', err2);
+      const g = document.getElementById('grid');
+      if (g) g.innerHTML = '<p style="padding:40px;text-align:center;color:#7A75A6">Не удалось загрузить каталог. Обнови страницу.</p>';
+      return;
+    }
   }
 "use strict";
 
@@ -1293,19 +1313,29 @@ $('#pubSite').addEventListener('click',async()=>{
   if(kb>300&&!confirm(`Каталог весит ${kb} КБ — обычно это значит, что в нём фото, вставленные файлом.\n`+
     `Сайт от этого грузится медленнее. Всё равно опубликовать?`))return;
 
+  const snapshot=$('#pubSnapshot').checked;
+  if(snapshot&&!confirm('Снимок в GitHub запустит сборку сайта и потратит кредиты Netlify.\n'+
+    'Для обычной публикации он не нужен. Всё равно сохранить снимок?'))return;
+
   const old=btn.textContent;btn.disabled=true;btn.textContent='Публикую…';
-  pubSay('Отправляю каталог на GitHub…');
+  pubSay('Публикую каталог…');
   try{
     const res=await fetch('/api/publish',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({password:pass,catalog:state})
+      body:JSON.stringify({password:pass,catalog:state,snapshot})
     });
     let data={};try{data=await res.json();}catch(e){}
     if(res.ok&&data.ok){
       pubPassCache=pass;$('#pubPass').value='';
-      pubSay(`Опубликовано ✓ товаров: ${data.products}, коммит ${data.commit||'—'}. `+
-        `Netlify пересоберёт сайт за минуту-две.`,'#2FA36B');
+      let msg=`Опубликовано ✓ товаров: ${data.products}. `+
+        (data.purged?'Уже видно всем.':'Появится у всех в течение пяти минут.');
+      if(data.snapshot){
+        msg+=data.snapshot.ok
+          ? ` Снимок в GitHub: ${data.snapshot.commit||'готов'} (сборка запущена).`
+          : ` Снимок в GitHub не удался: ${data.snapshot.error}.`;
+      }
+      pubSay(msg,'#2FA36B');
       flash(btn,'Готово ✓');
     }else{
       pubPassCache='';

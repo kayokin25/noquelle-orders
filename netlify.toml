@@ -5,6 +5,11 @@
 
 # Короткие адреса для админ-панели.
 [[redirects]]
+  from = "/api/catalog"
+  to = "/.netlify/functions/catalog"
+  status = 200
+
+[[redirects]]
   from = "/api/unlock"
   to = "/.netlify/functions/unlock"
   status = 200
