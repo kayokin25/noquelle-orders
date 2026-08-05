@@ -376,6 +376,8 @@ img{-webkit-user-drag:none;-khtml-user-drag:none;-moz-user-drag:none;-o-user-dra
   </div>
 </header>
 
+<div id="closedBanner" style="display:none;text-align:center;font-family:var(--display,inherit);font-weight:700;font-size:14px;color:#B4425A;background:#FFE3EC;padding:9px 14px;border-bottom:1px solid #FFC7DA">Приём заказов временно закрыт — витрину можно смотреть, оформить заказ пока нельзя</div>
+
 <section class="hero">
   <h1 id="heroName">Noquelle</h1>
   <p id="heroTag">предзаказ мерча</p>
@@ -513,6 +515,10 @@ img{-webkit-user-drag:none;-khtml-user-drag:none;-moz-user-drag:none;-o-user-dra
           <p class="note">Куда сайт отправляет заказы. Как её получить — в файле google-apps-script.gs. Пока поле пустое, заказ просто показывает подтверждение (в таблицу не уходит).</p>
         </div>
         <div class="field"><label>Категории (через запятую)</label><input id="setCats"></div>
+        <div class="toggles">
+          <label><input type="checkbox" id="setOrdersOpen" checked=""> Приём заказов открыт</label>
+        </div>
+        <p class="note" style="margin-top:0">Если снять галочку — корзина и кнопки «В корзину» пропадают с сайта, а в шапке появится подпись, что заказы закрыты. Витрину при этом видно как обычно.</p>
         <button class="btn soft" id="saveSettings">Сохранить настройки</button>
       </div>
 
@@ -558,6 +564,12 @@ img{-webkit-user-drag:none;-khtml-user-drag:none;-moz-user-drag:none;-o-user-dra
       <div class="panel">
         <h3>Товары <span id="pCount" style="color:var(--ink-soft);font-size:14px">(41)</span></h3>
         <div class="plist" id="adminList"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Архив <span id="archCount" style="color:var(--ink-soft);font-size:14px">(0)</span></h3>
+        <p class="note" style="margin-top:0">Товары в архиве не отображаются на сайте, но остаются под рукой в панели — можно вернуть в любой момент.</p>
+        <div class="plist" id="archiveList"></div>
       </div>
 
       <div class="panel">
@@ -683,6 +695,9 @@ let state=(()=>{try{const d=localStorage.getItem(STORE_KEY);return d?JSON.parse(
 let cart={},activeCat='Все',editingId=null,pendingOrder=false,orderTimer=null,lastOrder=null;
 
 if(!Array.isArray(state.promos))state.promos=[];
+if(!Array.isArray(state.archive))state.archive=[];
+/* Приём заказов: поле может отсутствовать в старых каталогах — тогда открыт. */
+function ordersOpen(){return state.shop.ordersOpen!==false;}
 
 const $=s=>document.querySelector(s);
 const $$=s=>[...document.querySelectorAll(s)];
@@ -701,6 +716,10 @@ function applyShop(){
   document.title=state.shop.name;
   $('#footTg').href='https://t.me/'+state.shop.telegram;
   { const fv=$('#footVk'); if(fv){ const v=(state.shop.vk||'').trim().replace(/^@/,''); if(v){ fv.href=v.startsWith('http')?v:'https://vk.com/'+v; fv.style.display=''; } else { fv.style.display='none'; } } }
+  { const open=ordersOpen(); const cb=$('#openCart'),bn=$('#closedBanner');
+    if(cb)cb.style.display=open?'':'none';
+    if(bn)bn.style.display=open?'none':'';
+    if(!open)closeCart(); }
 }
 /* Миниатюры собраны заранее и лежат рядом с полными картинками:
    img/p_pud1-0.webp → img/p_pud1-0@480.webp. Всё остальное (ссылки, base64
@@ -713,13 +732,25 @@ function renderChips(){
   const cats=['Все',...state.shop.categories];
   $('#chips').innerHTML=cats.map(c=>`<button class="chip ${c===activeCat?'active':''}" data-cat="${escAttr(c)}">${esc(c)}</button>`).join('');
 }
+/* Товары не в наличии тонут в конец списка, но их место в исходном порядке
+   не трогаем — если наличие вернуть, при следующей отрисовке товар сам
+   встанет туда же, откуда «утонул» (сортировка стабильная и не мутирует
+   state.products). */
+function sinkOutOfStock(list){
+  return list.map((p,i)=>({p,i})).sort((a,b)=>{
+    const oa=canBuy(a.p)?0:1,ob=canBuy(b.p)?0:1;
+    return oa!==ob?oa-ob:a.i-b.i;
+  }).map(x=>x.p);
+}
 function renderGrid(){
-  const list=state.products.filter(p=>activeCat==='Все'||p.category===activeCat);
+  const open=ordersOpen();
+  const list=sinkOutOfStock(state.products.filter(p=>activeCat==='Все'||p.category===activeCat));
   if(!list.length){$('#grid').innerHTML=`<p style="color:var(--ink-soft);font-weight:700">Тут пока пусто ✦</p>`;return;}
-  $('#grid').innerHTML=list.map(p=>{const left=remainingOf(p),buy=canBuy(p);return `
+  $('#grid').innerHTML=list.map(p=>{const left=remainingOf(p),buy=canBuy(p)&&open;
+    const badge=!open?'заказы закрыты':(!canBuy(p)?'нет в наличии':'');return `
     <article class="card ${buy?'':'out'}">
       <div class="thumb" data-zoom="${p.id}" role="button" tabindex="0" aria-label="Увеличить фото: ${escAttr(p.name)}">
-        ${!buy?`<span class="badge">нет в наличии</span>`:''}
+        ${badge?`<span class="badge">${badge}</span>`:''}
         ${imgList(p).length>1?`<span class="count-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="13" height="13" rx="2.5"/><path d="M20 8v11a1.5 1.5 0 0 1-1.5 1.5H8"/></svg>${imgList(p).length}</span>`:''}
         <span class="zoom-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg></span>
         ${cardImg(p)}
@@ -742,6 +773,7 @@ function renderStore(){applyShop();renderChips();renderGrid();renderCart();}
 /* cart — строки с опциями */
 function lineKey(id,opts){const k=opts&&Object.keys(opts).length?JSON.stringify(Object.keys(opts).sort().reduce((a,x)=>(a[x]=opts[x],a),{})):'';return id+'§'+k;}
 function addToCart(id,opts){
+  if(!ordersOpen())return;   // подстраховка: заказы закрыты — в корзину ничего не падает
   opts=opts||{};
   const left=remainingOf(state.products.find(x=>x.id===id));
   if(left!==null&&cartQtyOf(id)>=left){openCart();return;}   // остаток уже весь в корзине
@@ -829,6 +861,7 @@ function closeCart(){$('#drawer').classList.remove('show');$('#scrim').classList
 
 /* order submit */
 function submitOrder(){
+  if(!ordersOpen())return;
   const items=cartList();
   if(!items.length)return;
   const get=id=>$('#'+id);
@@ -1064,7 +1097,7 @@ document.addEventListener('change',e=>{if(e.target&&e.target.name==='delivery'){
 /* admin */
 function openAdmin(){$('#admin').classList.add('show');$('#admin').setAttribute('aria-hidden','false');}
 function closeAdmin(){$('#admin').classList.remove('show');$('#admin').setAttribute('aria-hidden','true');location.hash='';}
-function unlock(){$('#gate').style.display='none';$('#editor').style.display='block';loadSettingsForm();fillCatSelect();renderAdminList();renderGalEdit();renderOptEdit();renderPromoList();resetPromoForm();}
+function unlock(){$('#gate').style.display='none';$('#editor').style.display='block';loadSettingsForm();fillCatSelect();renderAdminList();renderArchiveList();renderGalEdit();renderOptEdit();renderPromoList();resetPromoForm();}
 $('#floatAdmin').addEventListener('click',()=>{location.hash='admin';openAdmin();});
 window.addEventListener('hashchange',()=>{if(location.hash==='#admin')openAdmin();});
 if(location.hash==='#admin')openAdmin();
@@ -1104,6 +1137,7 @@ function loadSettingsForm(){
   $('#setEndpoint').value=state.shop.orderEndpoint||'';
   $('#setVk').value=state.shop.vk||'';
   $('#setCats').value=state.shop.categories.join(', ');
+  $('#setOrdersOpen').checked=ordersOpen();
 }
 $('#saveSettings').addEventListener('click',()=>{
   state.shop.name=$('#setName').value.trim()||'магазин';
@@ -1114,6 +1148,7 @@ $('#saveSettings').addEventListener('click',()=>{
   delete state.shop.adminPass;   // пароль живёт на сервере, в каталоге его быть не должно
   state.shop.orderEndpoint=$('#setEndpoint').value.trim();
   state.shop.categories=$('#setCats').value.split(',').map(s=>s.trim()).filter(Boolean);
+  state.shop.ordersOpen=$('#setOrdersOpen').checked;
   saveDraft();fillCatSelect();renderStore();flash($('#saveSettings'),'Сохранено ✓');
 });
 
@@ -1207,6 +1242,7 @@ function renderAdminList(){
         <button data-up="${p.id}" title="выше" style="background:var(--sky)">↑</button>
         <button data-down="${p.id}" title="ниже" style="background:var(--sky)">↓</button>
         <button data-edit="${p.id}" style="background:var(--mint)">изм.</button>
+        <button data-arch="${p.id}" title="В архив" style="background:var(--sky)">📦</button>
         <button data-del="${p.id}" style="background:#FFD9D9;color:#B4425A">✕</button>
       </div>
     </div>`).join('');
@@ -1215,8 +1251,49 @@ $('#adminList').addEventListener('click',e=>{
   const t=e.target.closest('button');if(!t)return;
   if(t.dataset.edit)editProduct(t.dataset.edit);
   else if(t.dataset.del)delProduct(t.dataset.del);
+  else if(t.dataset.arch)archiveProduct(t.dataset.arch);
   else if(t.dataset.up)moveProduct(t.dataset.up,-1);
   else if(t.dataset.down)moveProduct(t.dataset.down,1);
+});
+
+/* админ: архив — товары спрятаны от покупателей, но не удалены */
+function archiveProduct(id){
+  const i=state.products.findIndex(p=>p.id===id);if(i<0)return;
+  const [p]=state.products.splice(i,1);state.archive.unshift(p);
+  if(editingId===id)resetForm();
+  saveDraft();renderAdminList();renderArchiveList();renderStore();
+}
+function restoreProduct(id){
+  const i=state.archive.findIndex(p=>p.id===id);if(i<0)return;
+  const [p]=state.archive.splice(i,1);state.products.unshift(p);
+  saveDraft();renderAdminList();renderArchiveList();renderStore();
+}
+function deleteArchived(id){
+  const p=state.archive.find(x=>x.id===id);
+  if(!confirm(`Удалить «${p?p.name:''}» из архива навсегда?`))return;
+  state.archive=state.archive.filter(x=>x.id!==id);
+  saveDraft();renderArchiveList();
+}
+function renderArchiveList(){
+  const c=$('#archiveList');if(!c)return;
+  $('#archCount').textContent=`(${state.archive.length})`;
+  if(!state.archive.length){c.innerHTML='<p class="note" style="margin:0">В архиве пусто.</p>';return;}
+  c.innerHTML=state.archive.map(p=>`
+    <div class="prow">
+      <img src="${escAttr(thumbSrc(imgSrc(imgList(p)[0])))}" alt="" loading="lazy" decoding="async">
+      <span class="pn">${esc(p.name)}${p.size?` · ${esc(p.size)}`:''}</span>
+      <span class="tag o">${esc(p.category||'')}</span>
+      <span class="pp">${p.price} ${cur()}</span>
+      <div class="miniact">
+        <button data-restore="${p.id}" style="background:var(--mint)">Вернуть</button>
+        <button data-archdel="${p.id}" style="background:#FFD9D9;color:#B4425A">✕</button>
+      </div>
+    </div>`).join('');
+}
+$('#archiveList').addEventListener('click',e=>{
+  const t=e.target.closest('button');if(!t)return;
+  if(t.dataset.restore)restoreProduct(t.dataset.restore);
+  else if(t.dataset.archdel)deleteArchived(t.dataset.archdel);
 });
 
 /* админ: опции товара */
@@ -1356,7 +1433,8 @@ $('#jsonFile').addEventListener('change',e=>{
     if(!d||!Array.isArray(d.products))throw new Error('нет products');
     state.products=d.products;
     if(Array.isArray(d.promos))state.promos=d.promos;
-    saveDraft();renderAdminList();renderPromoList();renderStore();flash($('#upJson'),'Загружено ✓');
+    if(Array.isArray(d.archive))state.archive=d.archive;
+    saveDraft();renderAdminList();renderArchiveList();renderPromoList();renderStore();flash($('#upJson'),'Загружено ✓');
   }catch(err){alert('Не получилось прочитать файл — нужен catalog.json или products.json');}};
   r.readAsText(f);
 });
