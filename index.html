@@ -213,6 +213,24 @@ footer a{color:var(--pop-deep);text-decoration:none}
 .actbar{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
 .miniact{display:flex;gap:6px}
 .miniact button{border:0;cursor:pointer;border-radius:9px;padding:7px 10px;font-weight:800;font-size:13px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.pcard{position:relative;display:flex;flex-direction:column;border:2px solid var(--line);
+  border-radius:16px;padding:9px;background:var(--paper);cursor:grab;transition:box-shadow .15s,opacity .15s}
+.pcard.dragging{opacity:.4}
+.pcard.drag-over{border-color:var(--sky-deep);box-shadow:0 0 0 3px var(--sky)}
+.pcard img{width:100%;aspect-ratio:1/1;border-radius:12px;object-fit:cover;background:var(--sky);
+  margin-bottom:8px;pointer-events:none}
+.pcard-drag{position:absolute;top:16px;left:16px;width:26px;height:26px;border-radius:8px;
+  background:rgba(255,249,243,.9);display:flex;align-items:center;justify-content:center;
+  font-size:15px;color:var(--ink-soft);line-height:1}
+.pcard-name{font-weight:800;font-size:13.5px;margin:0 0 6px;line-height:1.3;
+  overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.pcard-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.pcard-tags .tag{font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--line);color:var(--ink-soft)}
+.pcard-tags .tag.o{background:#FFE1E1;color:#B4425A}
+.pcard-price{font-weight:800;color:var(--pop-deep);font-size:14px;margin:0 0 8px}
+.pcard-act{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto}
+.pcard-act button{border:0;cursor:pointer;border-radius:8px;padding:6px 8px;font-weight:800;font-size:12px}
 .gate{max-width:360px;margin:16vh auto 0;text-align:center}
 .gate .panel{padding:26px}
 .note{font-size:12.5px;color:var(--ink-soft);font-weight:600;line-height:1.5;margin:8px 0 0}
@@ -563,7 +581,7 @@ img{-webkit-user-drag:none;-khtml-user-drag:none;-moz-user-drag:none;-o-user-dra
 
       <div class="panel">
         <h3>Товары <span id="pCount" style="color:var(--ink-soft);font-size:14px">(41)</span></h3>
-        <div class="plist" id="adminList"></div>
+        <div class="pgrid" id="adminList"></div>
       </div>
 
       <div class="panel">
@@ -1230,20 +1248,23 @@ function moveProduct(id,dir){
 function renderAdminList(){
   $('#pCount').textContent=`(${state.products.length})`;
   $('#adminList').innerHTML=state.products.map(p=>`
-    <div class="prow">
-      <img src="${escAttr(thumbSrc(imgSrc(imgList(p)[0])))}" alt="" loading="lazy" decoding="async">
-      <span class="pn">${esc(p.name)}${p.size?` · ${esc(p.size)}`:''}</span>
-      <span class="tag ${canBuy(p)?'':'o'}">${canBuy(p)
-        ?esc(p.category)+(stockLeft(p)!==null?` · осталось ${remainingOf(p)} из ${stockLeft(p)}`:'')
-        :(stockLeft(p)===0||remainingOf(p)===0?'распродано':'нет в наличии')}</span>${
-        soldOf(p)?`<span class="tag" style="background:rgba(255,111,165,.16);color:var(--pop-deep)">продано ${soldOf(p)}</span>`:''}
-      <span class="pp">${p.price} ${cur()}</span>
-      <div class="miniact">
-        <button data-up="${p.id}" title="выше" style="background:var(--sky)">↑</button>
-        <button data-down="${p.id}" title="ниже" style="background:var(--sky)">↓</button>
+    <div class="pcard" draggable="true" data-id="${p.id}">
+      <span class="pcard-drag" title="перетащи, чтобы изменить порядок" aria-hidden="true">⠿</span>
+      <img src="${escAttr(thumbSrc(imgSrc(imgList(p)[0])))}" alt="" loading="lazy" decoding="async" draggable="false">
+      <p class="pcard-name">${esc(p.name)}${p.size?` · ${esc(p.size)}`:''}</p>
+      <div class="pcard-tags">
+        <span class="tag ${canBuy(p)?'':'o'}">${canBuy(p)
+          ?esc(p.category)+(stockLeft(p)!==null?` · осталось ${remainingOf(p)} из ${stockLeft(p)}`:'')
+          :(stockLeft(p)===0||remainingOf(p)===0?'распродано':'нет в наличии')}</span>${
+          soldOf(p)?`<span class="tag" style="background:rgba(255,111,165,.16);color:var(--pop-deep)">продано ${soldOf(p)}</span>`:''}
+      </div>
+      <p class="pcard-price">${p.price} ${cur()}</p>
+      <div class="pcard-act">
         <button data-edit="${p.id}" style="background:var(--mint)">изм.</button>
         <button data-arch="${p.id}" title="В архив" style="background:var(--sky)">📦</button>
         <button data-del="${p.id}" style="background:#FFD9D9;color:#B4425A">✕</button>
+        <button data-up="${p.id}" title="выше" style="background:var(--sky)">↑</button>
+        <button data-down="${p.id}" title="ниже" style="background:var(--sky)">↓</button>
       </div>
     </div>`).join('');
 }
@@ -1254,6 +1275,41 @@ $('#adminList').addEventListener('click',e=>{
   else if(t.dataset.arch)archiveProduct(t.dataset.arch);
   else if(t.dataset.up)moveProduct(t.dataset.up,-1);
   else if(t.dataset.down)moveProduct(t.dataset.down,1);
+});
+/* Перетаскивание карточек товаров для смены порядка — стрелки ↑↓ остаются
+   рядом как запасной вариант (на телефоне нативный drag часто не работает). */
+let dragProductId=null;
+$('#adminList').addEventListener('dragstart',e=>{
+  const card=e.target.closest('.pcard');if(!card)return;
+  dragProductId=card.dataset.id;card.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+  try{e.dataTransfer.setData('text/plain',dragProductId);}catch(err){}
+});
+$('#adminList').addEventListener('dragend',e=>{
+  const card=e.target.closest('.pcard');if(card)card.classList.remove('dragging');
+  $$('#adminList .pcard').forEach(c=>c.classList.remove('drag-over'));
+  dragProductId=null;
+});
+$('#adminList').addEventListener('dragover',e=>{
+  if(!dragProductId)return;
+  e.preventDefault();e.dataTransfer.dropEffect='move';
+  const card=e.target.closest('.pcard');
+  $$('#adminList .pcard').forEach(c=>{if(c!==card)c.classList.remove('drag-over');});
+  if(card&&card.dataset.id!==dragProductId)card.classList.add('drag-over');
+});
+$('#adminList').addEventListener('drop',e=>{
+  e.preventDefault();
+  const card=e.target.closest('.pcard');
+  $$('#adminList .pcard').forEach(c=>c.classList.remove('drag-over'));
+  const draggedId=dragProductId;dragProductId=null;
+  if(!card||!draggedId||card.dataset.id===draggedId)return;
+  const from=state.products.findIndex(p=>p.id===draggedId);if(from<0)return;
+  const rect=card.getBoundingClientRect();
+  const before=(e.clientY-rect.top)<rect.height/2;
+  const [item]=state.products.splice(from,1);
+  const to=state.products.findIndex(p=>p.id===card.dataset.id);
+  state.products.splice(before?to:to+1,0,item);
+  saveDraft();renderAdminList();renderStore();
 });
 
 /* админ: архив — товары спрятаны от покупателей, но не удалены */
