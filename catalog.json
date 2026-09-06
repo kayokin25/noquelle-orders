@@ -12,9 +12,25 @@
       "Значки",
       "Стикеры",
       "Печать"
-    ]
+    ],
+    "ordersOpen": true
   },
   "products": [
+    {
+      "id": "pmtpz9f02pkx",
+      "name": "Акриловый брелок \"Веревки\"",
+      "desc": "Может слегка отличаться от представленного на фото, разные стороны, ограниченный тираж",
+      "size": "7см",
+      "price": 600,
+      "category": "Брелоки",
+      "images": [
+        "img/pmtpz9f02pkx-0.webp"
+      ],
+      "image": "img/pmtpz9f02pkx-0.webp",
+      "options": [],
+      "inStock": true,
+      "stock": 9
+    },
     {
       "id": "pmruuv9ywclh",
       "name": "МУДА ГАЧА",
@@ -50,7 +66,7 @@
       "name": "Составной стенд «Phantom Blood»",
       "price": 2200,
       "category": "Стенды",
-      "desc": "",
+      "desc": "ТОЛЬКО ПО ПРЕДЗАКАЗУ",
       "size": "15 см",
       "images": [
         "img/p_stbig-0.webp"
@@ -62,9 +78,9 @@
     {
       "id": "pmrv4wbo292b",
       "name": "Шоколадка \"BubbleGum\"",
-      "desc": "",
+      "desc": "+ карточка в подарок (ограниченно!!!)",
       "size": "8см",
-      "price": 800,
+      "price": 900,
       "category": "Брелоки",
       "images": [
         "img/pmrv4wbo292b-0.webp",
@@ -73,7 +89,7 @@
       "image": "img/pmrv4wbo292b-0.webp",
       "options": [],
       "inStock": true,
-      "stock": 7
+      "stock": 8
     },
     {
       "id": "pmruupziuzwa",
@@ -108,7 +124,7 @@
       "name": "Горничная ДИО",
       "price": 1800,
       "category": "Стенды",
-      "desc": "",
+      "desc": "ТОЛЬКО ПО ПРЕДЗАКАЗУ",
       "size": "20 см",
       "images": [
         "img/p_st2-0.webp"
@@ -122,7 +138,7 @@
       "name": "Горничная Диего Брандо",
       "price": 1800,
       "category": "Стенды",
-      "desc": "",
+      "desc": "ТОЛЬКО ПО ПРЕДЗАКАЗУ",
       "size": "20 см",
       "images": [
         "img/p_st1-0.webp"
@@ -136,7 +152,7 @@
       "name": "Горничная Теленс Т. Д'Арби",
       "price": 1200,
       "category": "Стенды",
-      "desc": "",
+      "desc": "ТОЛЬКО ПО ПРЕДЗАКАЗУ",
       "size": "15 см",
       "images": [
         "img/p_st3-0.webp"
@@ -158,7 +174,7 @@
       "image": "img/p_st4-0.webp",
       "inStock": true,
       "options": [],
-      "stock": 5
+      "stock": 3
     },
     {
       "id": "p_st5",
@@ -173,7 +189,7 @@
       "image": "img/p_st5-0.webp",
       "inStock": true,
       "options": [],
-      "stock": 4
+      "stock": 3
     },
     {
       "id": "p_tv1",
@@ -183,58 +199,27 @@
       "desc": "Разноцветные телевизоры с подсветкой и шумом. Цвет и экран выбираются при добавлении в корзину\n\n!!! Количество ограничено !!!",
       "size": "",
       "images": [
+        "img/p_tv1-4.webp",
         "img/p_tv1-0.webp",
         "img/p_tv1-1.webp",
         "img/p_tv1-2.webp",
-        "img/p_tv1-3.webp",
-        "img/p_tv1-4.webp"
+        "img/p_tv1-3.webp"
       ],
-      "image": "img/p_tv1-0.webp",
+      "image": "img/p_tv1-4.webp",
       "inStock": true,
       "options": [
         {
           "name": "Цвет телика",
           "type": "select",
           "choices": [
-            "Розовый",
-            "Чёрный",
-            "Жёлтый"
+            "Диего",
+            "Валентайн",
+            "Карс"
           ],
           "required": true
         }
       ],
-      "stock": 4
-    },
-    {
-      "id": "pmrue2spm7k7",
-      "name": "Экраны для теликов",
-      "desc": "Сменные экраны для теликов-брелков\nПри заказе вместе с теликом — 30р\n\n!!! Количество ограничено !!!",
-      "size": "",
-      "price": 50,
-      "category": "Брелоки",
-      "images": [
-        "img/pmrue2spm7k7-0.webp",
-        "img/pmrue2spm7k7-1.webp",
-        "img/pmrue2spm7k7-2.webp",
-        "img/pmrue2spm7k7-3.webp",
-        "img/pmrue2spm7k7-4.webp"
-      ],
-      "image": "img/pmrue2spm7k7-0.webp",
-      "options": [
-        {
-          "name": "Экран",
-          "type": "select",
-          "choices": [
-            "Валентайн",
-            "Карс",
-            "Дио красный",
-            "Дио голубой",
-            "Диего"
-          ],
-          "required": false
-        }
-      ],
-      "inStock": true
+      "stock": 3
     },
     {
       "id": "p_pud1",
@@ -249,7 +234,7 @@
       "image": "img/p_pud1-0.webp",
       "inStock": true,
       "options": [],
-      "stock": 4
+      "stock": 3
     },
     {
       "id": "p_pud2",
@@ -267,6 +252,37 @@
       "stock": 2
     },
     {
+      "id": "pmtpzu0i5jz4",
+      "name": "Открытка синий Дио",
+      "desc": "брак (см. фото)",
+      "size": "А6",
+      "price": 100,
+      "category": "Печать",
+      "images": [
+        "https://sun9-22.vkuserphoto.ru/s/v1/ig2/T9D-ZiBjt_UGJ098vFP6LBoeBDSx5lJugNfr_Zx5za6XtVu6Kl2QxaDzA9sCnBjzCC0B_x_Kt73c8XLZjW5gOyiX.jpg?quality=95&crop=0,0,1810,2560&as=32x45,48x68,72x102,108x153,160x226,240x339,360x509,480x679,540x764,640x905,720x1018,1080x1528,1280x1810,1440x2037,1810x2560&from=bu&u=Z8aCNJMm2QywEOJTWJqVuqTxXkbQHFm28kxPA2aE284&cs=1810x0",
+        "img/pmtpzu0i5jz4-1.webp"
+      ],
+      "image": "https://sun9-22.vkuserphoto.ru/s/v1/ig2/T9D-ZiBjt_UGJ098vFP6LBoeBDSx5lJugNfr_Zx5za6XtVu6Kl2QxaDzA9sCnBjzCC0B_x_Kt73c8XLZjW5gOyiX.jpg?quality=95&crop=0,0,1810,2560&as=32x45,48x68,72x102,108x153,160x226,240x339,360x509,480x679,540x764,640x905,720x1018,1080x1528,1280x1810,1440x2037,1810x2560&from=bu&u=Z8aCNJMm2QywEOJTWJqVuqTxXkbQHFm28kxPA2aE284&cs=1810x0",
+      "options": [],
+      "inStock": true
+    },
+    {
+      "id": "pmtq1jso7f2r",
+      "name": "Карточка",
+      "desc": "Сахарная двусторонняя карточка",
+      "size": "8см",
+      "price": 200,
+      "category": "Печать",
+      "images": [
+        "img/pmtq1jso7f2r-0.webp",
+        "img/pmtq1jso7f2r-1.webp"
+      ],
+      "image": "img/pmtq1jso7f2r-0.webp",
+      "options": [],
+      "inStock": true,
+      "stock": 20
+    },
+    {
       "id": "p_pc1",
       "name": "Открытка А6 №1",
       "price": 150,
@@ -278,7 +294,8 @@
       ],
       "image": "img/p_pc1-0.webp",
       "inStock": true,
-      "options": []
+      "options": [],
+      "stock": 5
     },
     {
       "id": "p_pc2",
@@ -320,7 +337,8 @@
       ],
       "image": "img/p_pc4-0.webp",
       "inStock": true,
-      "options": []
+      "options": [],
+      "stock": 6
     },
     {
       "id": "p_pc5",
@@ -334,7 +352,8 @@
       ],
       "image": "img/p_pc5-0.webp",
       "inStock": true,
-      "options": []
+      "options": [],
+      "stock": 7
     },
     {
       "id": "p_pc7",
@@ -348,7 +367,8 @@
       ],
       "image": "img/p_pc7-0.webp",
       "inStock": true,
-      "options": []
+      "options": [],
+      "stock": 7
     },
     {
       "id": "p_pc8",
@@ -362,7 +382,8 @@
       ],
       "image": "img/p_pc8-0.webp",
       "inStock": true,
-      "options": []
+      "options": [],
+      "stock": 5
     },
     {
       "id": "p_pc10",
@@ -376,7 +397,8 @@
       ],
       "image": "img/p_pc10-0.webp",
       "inStock": true,
-      "options": []
+      "options": [],
+      "stock": 1
     },
     {
       "id": "p_pc11",
@@ -389,7 +411,7 @@
         "img/p_pc11-0.webp"
       ],
       "image": "img/p_pc11-0.webp",
-      "inStock": true,
+      "inStock": false,
       "options": []
     },
     {
@@ -404,7 +426,8 @@
       ],
       "image": "img/p_pc12-0.webp",
       "inStock": true,
-      "options": []
+      "options": [],
+      "stock": 5
     },
     {
       "id": "p_pc13",
@@ -418,7 +441,8 @@
       ],
       "image": "img/p_pc13-0.webp",
       "inStock": true,
-      "options": []
+      "options": [],
+      "stock": 5
     },
     {
       "id": "p_pc14",
@@ -432,21 +456,24 @@
       ],
       "image": "img/p_pc14-0.webp",
       "inStock": true,
-      "options": []
+      "options": [],
+      "stock": 4
     },
     {
       "id": "p_pc15",
       "name": "Открытка А6 №15",
-      "price": 150,
+      "price": 50,
       "category": "Печать",
-      "desc": "",
+      "desc": "!!легкий брак с краю (фото)!!",
       "size": "A6",
       "images": [
-        "img/p_pc15-0.webp"
+        "img/p_pc15-0.webp",
+        "img/p_pc15-1.webp"
       ],
       "image": "img/p_pc15-0.webp",
       "inStock": true,
-      "options": []
+      "options": [],
+      "stock": 6
     },
     {
       "id": "p_pr3",
@@ -460,7 +487,8 @@
       ],
       "image": "img/p_pr3-0.webp",
       "inStock": true,
-      "options": []
+      "options": [],
+      "stock": 8
     },
     {
       "id": "p_pr2",
@@ -474,14 +502,15 @@
       ],
       "image": "img/p_pr2-0.webp",
       "inStock": true,
-      "options": []
+      "options": [],
+      "stock": 5
     },
     {
       "id": "p_pr4",
       "name": "Принт Диего",
       "price": 300,
       "category": "Печать",
-      "desc": "",
+      "desc": "Уточнение",
       "size": "30×15 см",
       "images": [
         "img/p_pr4-0.webp"
@@ -502,12 +531,13 @@
       ],
       "image": "img/p_pr5-0.webp",
       "inStock": true,
-      "options": []
+      "options": [],
+      "stock": 4
     },
     {
       "id": "pmrvqzmtsrra",
       "name": "Принт Вампиры",
-      "desc": "",
+      "desc": "Уточнение",
       "size": "30см",
       "price": 300,
       "category": "Печать",
@@ -530,7 +560,8 @@
       ],
       "image": "img/p_pr6-0.webp",
       "inStock": true,
-      "options": []
+      "options": [],
+      "stock": 6
     },
     {
       "id": "p_pr7",
@@ -544,7 +575,8 @@
       ],
       "image": "img/p_pr7-0.webp",
       "inStock": true,
-      "options": []
+      "options": [],
+      "stock": 2
     },
     {
       "id": "p_pr8",
@@ -558,14 +590,15 @@
       ],
       "image": "img/p_pr8-0.webp",
       "inStock": true,
-      "options": []
+      "options": [],
+      "stock": 9
     },
     {
       "id": "p_bd37",
       "name": "Значок «Дио» 37 мм",
       "price": 150,
       "category": "Значки",
-      "desc": "!!! Количество ограничено !!!",
+      "desc": "Будут в будущем",
       "size": "37 мм",
       "images": [
         "img/p_bd37-0.webp"
@@ -579,68 +612,12 @@
       "name": "Значок «Диего» 25 мм",
       "price": 100,
       "category": "Значки",
-      "desc": "!!! Количество ограничено !!!",
+      "desc": "Будут в будущем",
       "size": "25 мм",
       "images": [
         "img/p_bd25-0.webp"
       ],
       "image": "img/p_bd25-0.webp",
-      "inStock": false,
-      "options": []
-    },
-    {
-      "id": "p_kc",
-      "name": "Кейкап «Дио»",
-      "price": 300,
-      "category": "Брелоки",
-      "desc": "!!! Количество ограничено !!!",
-      "size": "",
-      "images": [
-        "img/p_kc-0.webp"
-      ],
-      "image": "img/p_kc-0.webp",
-      "inStock": false,
-      "options": []
-    },
-    {
-      "id": "p_pc6",
-      "name": "Открытка А6 №6",
-      "price": 150,
-      "category": "Печать",
-      "desc": "",
-      "size": "A6",
-      "images": [
-        "img/p_pc6-0.webp"
-      ],
-      "image": "img/p_pc6-0.webp",
-      "inStock": false,
-      "options": []
-    },
-    {
-      "id": "p_pc9",
-      "name": "Открытка А6 №9",
-      "price": 150,
-      "category": "Печать",
-      "desc": "",
-      "size": "A6",
-      "images": [
-        "img/p_pc9-0.webp"
-      ],
-      "image": "img/p_pc9-0.webp",
-      "inStock": false,
-      "options": []
-    },
-    {
-      "id": "p_pr9",
-      "name": "Принт Дио №5",
-      "price": 300,
-      "category": "Печать",
-      "desc": "",
-      "size": "A4",
-      "images": [
-        "img/p_pr9-0.webp"
-      ],
-      "image": "img/p_pr9-0.webp",
       "inStock": false,
       "options": []
     }
@@ -660,6 +637,67 @@
         }
       ],
       "price": 600
+    }
+  ],
+  "archive": [
+    {
+      "id": "p_pr9",
+      "name": "Принт Дио №5",
+      "price": 300,
+      "category": "Печать",
+      "desc": "",
+      "size": "A4",
+      "images": [
+        "img/p_pr9-0.webp"
+      ],
+      "image": "img/p_pr9-0.webp",
+      "inStock": false,
+      "options": []
+    },
+    {
+      "id": "p_kc",
+      "name": "Кейкап «Дио»",
+      "price": 300,
+      "category": "Брелоки",
+      "desc": "!!! Количество ограничено !!!",
+      "size": "",
+      "images": [
+        "img/p_kc-0.webp"
+      ],
+      "image": "img/p_kc-0.webp",
+      "inStock": false,
+      "options": []
+    },
+    {
+      "id": "pmrue2spm7k7",
+      "name": "Экраны для теликов",
+      "desc": "Сменные экраны для теликов-брелков\nПри заказе вместе с теликом — 30р\n\n!!! Количество ограничено !!!",
+      "size": "",
+      "price": 50,
+      "category": "Брелоки",
+      "images": [
+        "img/pmrue2spm7k7-0.webp",
+        "img/pmrue2spm7k7-1.webp",
+        "img/pmrue2spm7k7-2.webp",
+        "img/pmrue2spm7k7-3.webp",
+        "img/pmrue2spm7k7-4.webp"
+      ],
+      "image": "img/pmrue2spm7k7-0.webp",
+      "options": [
+        {
+          "name": "Экран",
+          "type": "select",
+          "choices": [
+            "Валентайн",
+            "Карс",
+            "Дио красный",
+            "Дио голубой",
+            "Диего"
+          ],
+          "required": false
+        }
+      ],
+      "inStock": false
     }
   ]
 }
