@@ -762,7 +762,10 @@ function applyShop(){
    img/p_pud1-0.webp → img/p_pud1-0@480.webp. Всё остальное (ссылки, base64
    у только что добавленных фото) отдаём как есть. */
 function thumbSrc(v){
-  return (typeof v==='string'&&/^img\/[^?#]+\.webp$/.test(v)) ? v.replace(/\.webp$/,'@480.webp') : v;
+  if(typeof v!=='string')return v;
+  if(/^img\/[^?#]+\.webp$/.test(v))return v.replace(/\.webp$/,'@480.webp');
+  if(/^\/api\/img\/[0-9a-f]{16}\.\w+$/.test(v))return v.replace(/(\.\w+)$/,'@480$1');
+  return v;
 }
 const cardImg=(p,extra)=>`<img src="${escAttr(thumbSrc(imgSrc(imgList(p)[0])))}" alt="${escAttr(p.name)}" loading="lazy" decoding="async" draggable="false"${extra||''}>`;
 function renderChips(){
@@ -1215,35 +1218,54 @@ function renderGalEdit(){
     </div>`).join('');
 }
 function addImg(src){src=(src||'').trim();if(!src)return;pendingImgs.push(src);renderGalEdit();}
-/* Фото, вставленное файлом, ложится в каталог строкой base64 — и каталог
-   целиком качает каждый посетитель при каждом заходе. Пять исходников с
-   телефона однажды раздули его до 2,4 МБ, и на медленной мобильной связи
-   загрузка срывалась. Поэтому ужимаем до 1400px прямо в браузере.
-   Правильный путь прежний: py compress-images.py <файл> <имя> и ссылка
-   img/<имя>.webp — тогда фото в каталоге вообще не лежит. */
+/* Фото из файлового выбора раньше уезжало прямо в каталог строкой base64.
+   Пять таких фото раздули каталог до 2,4 МБ, и его целиком качал каждый
+   посетитель до отрисовки первого товара — на медленной мобильной связи
+   загрузка срывалась, и сайт показывал старый запасной каталог.
+
+   Теперь фото ужимается в браузере (полный размер до 1400px + превью 480px)
+   и сразу уходит в хранилище через /api/upload, а в каталоге остаётся только
+   ссылка вида /api/img/<хеш>.webp. Каталог больше не может потяжелеть от фото.
+   Путь через py compress-images.py по-прежнему работает и по-прежнему чуть
+   лучше: там картинки лежат файлами в репозитории и раздаются без функции. */
 function shrinkImage(file){
   return new Promise((ok,fail)=>{
     const img=new Image(),url=URL.createObjectURL(file);
     img.onload=()=>{
-      const k=Math.min(1,1400/Math.max(img.width,img.height));
-      const c=document.createElement('canvas');
-      c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
-      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
       URL.revokeObjectURL(url);
-      // ponytail: webp умеет не всякий Safari — там canvas молча отдаёт png,
-      // он тяжелее исходника, поэтому в этом случае берём jpeg (теряя прозрачность).
-      const out=c.toDataURL('image/webp',0.8);
-      ok(out.startsWith('data:image/webp')?out:c.toDataURL('image/jpeg',0.85));
+      const draw=cap=>{
+        const k=Math.min(1,cap/Math.max(img.width,img.height));   // мелкие не растягиваем
+        const c=document.createElement('canvas');
+        c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        // ponytail: webp умеет не всякий Safari — там canvas молча отдаёт png,
+        // он тяжелее исходника, поэтому в этом случае берём jpeg (теряя прозрачность).
+        const out=c.toDataURL('image/webp',0.8);
+        return out.startsWith('data:image/webp')?out:c.toDataURL('image/jpeg',0.85);
+      };
+      ok({full:draw(1400),thumb:draw(480)});
     };
-    img.onerror=()=>{URL.revokeObjectURL(url);fail(new Error('не картинка'));};
+    img.onerror=()=>{URL.revokeObjectURL(url);fail(new Error('файл не похож на картинку'));};
     img.src=url;
   });
 }
 $('#fFile').addEventListener('change',async e=>{
   const files=[...e.target.files];e.target.value='';if(!files.length)return;
+  const g=$('#fGallery');if(g)g.innerHTML='<div class="galempty">Загружаю фото…</div>';
   for(const f of files){
-    try{pendingImgs.push(await shrinkImage(f));}
-    catch(err){alert('Не получилось прочитать фото: '+f.name);}
+    try{
+      const {full,thumb}=await shrinkImage(f);
+      const res=await fetch('/api/upload',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({password:pubPassCache,full,thumb})
+      });
+      let d={};try{d=await res.json();}catch(err){}
+      if(!res.ok||!d.ok)throw new Error(d.error||('сервер ответил '+res.status));
+      pendingImgs.push(d.url);
+    }catch(err){
+      alert(`Фото «${f.name}» не загрузилось: ${err.message||err}
+Попробуй ещё раз.`);
+    }
   }
   renderGalEdit();
 });

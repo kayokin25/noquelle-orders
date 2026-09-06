@@ -24,6 +24,16 @@
   to = "/.netlify/functions/stock"
   status = 200
 
+[[redirects]]
+  from = "/api/upload"
+  to = "/.netlify/functions/upload"
+  status = 200
+
+[[redirects]]
+  from = "/api/img/*"
+  to = "/.netlify/functions/img/:splat"
+  status = 200
+
 # Каталог должен подхватываться сразу после публикации, без кеша браузера.
 [[headers]]
   for = "/catalog.json"
